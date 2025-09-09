@@ -1,0 +1,7 @@
+path: dataset
+train: train
+val: val
+names:
+  0: Battery
+  1: Alternator
+  2: Portline

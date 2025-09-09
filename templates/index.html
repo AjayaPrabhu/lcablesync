@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SFA AI Assistant</title>
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; font-family: "Segoe UI", sans-serif; overflow: hidden; }
+    #bg-video { position: fixed; top: 0; left: 0; min-width: 100%; min-height: 100%; object-fit: cover; z-index: -1; }
+    .overlay { background-color: rgba(0, 0, 0, 0.1); width: 100%; height: 100%; display: flex; align-items: flex-start; padding-top: 140px; color: white; gap: 20px; }
+    .left-panel { width: 1200px; padding-left: 20px; }
+    .pdf-tile { background: rgba(255, 255, 255, 0.05); padding: 25px 20px; border-radius: 6px; border: 1px solid #ffffff66; box-shadow: 0 0 18px rgba(0, 0, 0, 0.4); height: 520px; backdrop-filter: blur(4px); }
+    .pdf-tile h2 { font-size: 20px; margin-bottom: 15px; }
+    .search-group { display: flex; flex-wrap: wrap; gap: 8px; }
+    .search-group input { padding: 6px 10px; font-size: 14px; border-radius: 5px; border: none; }
+    .search-group button { padding: 6px 12px; background-color: #050505; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    .pdf-results { margin-top: 10px; max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 8px; color: black; }
+    .pdf-card { background: rgba(255, 255, 255, 0.2); padding: 10px; border-radius: 8px; font-size: 14px; }
+    .pdf-card a { color: #050505; text-decoration: underline; margin-left: 8px; }
+    .top-title { position: absolute; top: 30px; left: 50%; transform: translateX(-50%); color: #000000; font-size: 40px; font-weight: bold; z-index: 10; text-align: center; }
+
+    /* Dashboard Panel */
+    .right-panel { width: 300px; }
+    #dashboard { 
+      background:#fff; 
+      color:#000; 
+      border-radius:10px; 
+      padding:15px; 
+      width:100%; 
+      height:520px; 
+      box-shadow:0 2px 6px rgba(0,0,0,0.2);
+      overflow-y:auto;
+    }
+
+    /* Chatbot */
+    #chatbot-toggle { position: fixed; bottom: 24px; right: 24px; cursor: pointer; z-index: 1000; }
+    #chatbot-toggle img { width: 60px; height: 60px; border-radius: 50%; box-shadow: 0 0 10px #000000aa; }
+    #chatbot-popup { position: fixed; bottom: 100px; right: 24px; width: 600px; height: 520px; background: #ffffffee; border-radius: 10px; box-shadow: 0 0 20px #00000066; display: none; flex-direction: column; z-index: 1001; }
+    .chat-header { background: #111; color: #fff; padding: 10px; display: flex; justify-content: space-between; }
+    #chat-messages { flex: 1; padding: 10px; overflow-y: auto; font-size: 14px; background: #f2f2f2; }
+    .chat-input-area { display: flex; padding: 8px; background: #fff; border-top: 1px solid #ddd; align-items: center; gap: 8px; }
+    #chatInput { flex: 1; padding: 6px 10px; border: 1px solid #ccc; border-radius: 5px; }
+    #paperclip { width: 22px; cursor: pointer; }
+    .msg-user { text-align: right; margin: 4px 0; color: #333; }
+    .msg-bot { text-align: left; margin: 4px 0; color: #000; white-space: pre-wrap; }
+    .loading { font-style: italic; opacity: 0.7; }
+  </style>
+</head>
+<body>
+<h1 class="top-title">Meet Our SFA-F AI Assistant</h1>
+<h3 style="text-align: center;">Energy High, Tech On The Fly - SFA-F HUB</h3>
+
+<video autoplay muted loop id="bg-video">
+  <source src="{{ url_for('static', filename='circuit.mp4') }}" type="video/mp4">
+</video>
+
+<div class="overlay">
+  <!-- LEFT SIDE -->
+  <div class="left-panel">
+    <div class="pdf-tile">
+      <h2>Official Latest SFA Version Locator</h2>
+      <div class="search-group">
+        <div>
+          <input type="text" id="sfaInput" placeholder="SFA Code" onkeypress="handleSearchKey(event)" />
+          <button onclick="clearField('sfaInput')">X</button>
+        </div>
+        <div>
+          <select id="platformInput">
+            <option value="">-- Select Platform --</option>
+            <option value="t4vs_cmfa">t4vs_cmfa</option>
+            <option value="c1a_cmfb">c1a_cmfb</option>
+            <option value="c1a_cmfcd">c1a_cmfcd</option>
+            <option value="c1a_lcv">c1a_lcv</option>
+            <option value="c1a_cmfev">c1a_cmfev</option>
+            <option value="c1a_cmf_ev">c1a_cmf_ev</option>
+            <option value="c1als_cmfb">c1als_cmfb</option>
+            <option value="c1ahs_cmfcd">c1ahs_cmfcd</option>
+            <option value="c1ahs_cmfb">c1ahs_cmfb</option>
+            <option value="c1ahsevo_cmfb">c1ahsevo_cmfb</option>
+            <option value="c1ahsevo_cmfb_ev">c1ahsevo_cmfb_ev</option>
+            <option value="c1ahsevo_cmfbev">c1ahsevo_cmfbev</option>
+            <option value="c1ahsevo_cmfev">c1ahsevo_cmfev</option>
+            <option value="c1ahsevo_cmf_ev">c1ahsevo_cmf_ev</option>
+            <option value="c1ahsevo_cmfcd">c1ahsevo_cmfcd</option>
+            <option value="c1ahsevo_lcv">c1ahsevo_lcv</option>
+            <option value="face_EZ1">face_EZ1</option>
+            <option value="face_step1">face_step1</option>
+            <option value="face_lcvev">face_lcvev</option>
+            <option value="aeea_app">aeea_app</option>
+            <option value="sdvstep1_ampr_m2">sdvstep1_ampr_m2</option>
+            <option value="c1ahsevo_appm1">c1ahsevo_appm1</option>
+          </select>
+          <button onclick="clearField('platformInput')">X</button>
+        </div>
+        <div>
+          <input type="text" id="filenameInput" placeholder="Full filename" onkeypress="handleSearchKey(event)" />
+          <button onclick="clearField('filenameInput')">X</button>
+        </div>
+        <button onclick="searchPDF()">🔍</button>
+      </div>
+      <div id="pdfResults" class="pdf-results"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT SIDE DASHBOARD -->
+  <div class="right-panel">
+    <div id="dashboard">
+      <h2 style="margin:0 0 10px; font-size:18px;">📊 Dashboard Summary</h2>
+      <p>Total Projects: <b>0</b></p>
+      <div id="dashboardProjects" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">
+        <!-- Projects will appear here -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chatbot Trigger -->
+<div id="chatbot-toggle" onclick="toggleChatbot()">
+  <img src="{{ url_for('static', filename='chatbot.gif') }}" alt="Chatbot" />
+</div>
+
+<!-- Chatbot Popup -->
+<div id="chatbot-popup">
+  <div class="chat-header">
+    <span>SCHEMIX</span>
+    <span style="cursor:pointer;" onclick="toggleChatbot()">➖</span>
+  </div>
+  <div id="chat-messages"></div>
+  <div class="chat-input-area">
+    <input type="text" id="chatInput" placeholder="Type your SFA code..." onkeypress="handleKey(event)" />
+    <button onclick="sendMessage()" style="padding: 6px 12px;">Send</button>
+    <label for="file-upload"><img id="paperclip" src="{{ url_for('static', filename='upload.png') }}" title="Attach file" /></label>
+    <input id="file-upload" type="file" accept="image/*,.pdf" onchange="uploadFile()" style="display: none;" />
+  </div>
+</div>
+
+<script>
+  function toggleChatbot() {
+    const popup = document.getElementById("chatbot-popup");
+    popup.style.display = popup.style.display === "flex" ? "none" : "flex";
+  }
+
+  function appendMessage(role, text) {
+    const chat = document.getElementById("chat-messages");
+    const msgDiv = document.createElement("div");
+    msgDiv.className = role === "user" ? "msg-user" : "msg-bot";
+    msgDiv.textContent = text;
+    chat.appendChild(msgDiv);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function appendLoading(text) {
+    const chat = document.getElementById("chat-messages");
+    const msgDiv = document.createElement("div");
+    msgDiv.className = "msg-bot loading";
+    msgDiv.textContent = text;
+    chat.appendChild(msgDiv);
+    chat.scrollTop = chat.scrollHeight;
+    return msgDiv;
+  }
+
+  async function sendMessage() {
+    const input = document.getElementById("chatInput");
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    appendMessage("user", msg);
+    input.value = "";
+
+    const loadingEl = appendLoading("Thinking…");
+
+    try {
+      const res = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: msg })
+      });
+      const data = await res.json();
+      loadingEl.remove();
+      appendMessage("bot", data.response || data.result || "No response.");
+    } catch (e) {
+      loadingEl.remove();
+      appendMessage("bot", "❌ Error contacting server.");
+    }
+  }
+
+  function handleKey(e) {
+    if (e.key === "Enter") sendMessage();
+  }
+  
+  async function searchPDF() {
+    const sfa = document.getElementById('sfaInput').value.trim();
+    const platform = document.getElementById('platformInput').value;
+    const filename = document.getElementById('filenameInput').value.trim();
+
+    const results = document.getElementById('pdfResults');
+    results.innerHTML = '<em>Searching…</em>';
+
+    try {
+      const res = await fetch(`/search-pdf?sfa=${encodeURIComponent(sfa)}&platform=${encodeURIComponent(platform)}&filename=${encodeURIComponent(filename)}`);
+      const data = await res.json();
+
+      results.innerHTML = data.length
+      ? data.map(f => `
+      <div class="pdf-card" id="card-${f.path.replace(/[^a-z0-9]/gi,'_')}">
+        <strong>${f.name}</strong><br>
+        📍 <small>${f.path}</small><br>
+        <a href="/preview/${f.path}" target="_blank">Preview</a> | 
+        <a href="javascript:void(0)" onclick="getMetadata('${f.path}')">Metadata</a>
+        <div class="metadata" style="margin-top:8px; font-size:13px; color:#000;"></div>
+        </div>
+        `).join("")
+        : "<p>No matching PDFs found.</p>";
+
+
+
+      // Update dashboard
+      updateDashboard(sfa, platform, filename);
+
+    } catch (e) {
+      results.innerHTML = "<p>❌ Search failed.</p>";
+    }
+  }
+
+async function updateDashboard(sfa, platform, filename) {
+  const dash = document.getElementById("dashboard");
+  dash.innerHTML = "<em>Loading dashboard…</em>";
+
+  try {
+    const projRes = await fetch(
+      `/search-summary?sfa=${encodeURIComponent(sfa)}&platform=${encodeURIComponent(platform)}&filename=${encodeURIComponent(filename)}`
+    );
+    const summary = await projRes.json();
+
+    dash.innerHTML = `
+  <h2 style="margin:0 0 10px; font-size:18px;">📊 Dashboard Summary</h2>
+  <div style="display:flex; flex-direction:column; gap:6px; margin-top:8px; font-size:14px;">
+    ${summary.details.map(d => {
+      return `<div>${d.project}-${d.marker}-${d.versions.join(",")}</div>`;
+    }).join("")}
+  </div>
+`;
+
+  } catch (err) {
+    dash.innerHTML = "<p>❌ Failed to load dashboard.</p>";
+  }
+}
+async function uploadFile() {
+  const fileInput = document.getElementById("file-upload");
+  const file = fileInput.files[0];
+  if (!file) {
+    appendMessage("bot", "⚠️ No file selected.");
+    return;
+  }
+
+  // ✅ show user message first
+  appendMessage("user", `📤 Uploaded: ${file.name}`);
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  let url = "";
+  if (file.type === "application/pdf") {
+    url = "/extract-metadata";   // PDF → metadata
+  } else if (file.type.startsWith("image/")) {
+    url = "/analyze-image";      // Image → OCR
+  } else {
+    appendMessage("bot", "❌ Unsupported file type. Please upload an image or PDF.");
+    return;
+  }
+
+  const loadingEl = appendLoading("Analyzing…");
+
+  try {
+    const res = await fetch(url, { method: "POST", body: formData });
+    const data = await res.json();
+    loadingEl.remove();
+
+    if (data.error) {
+      appendMessage("bot", "❌ " + data.error);
+    } else if (file.type === "application/pdf") {
+      let metaText = "📄 File Metadata\n";
+      metaText += `Type_schema: ${data.Type_schema || "-"}\n`;
+      metaText += `Libelle_fonction: ${data.Libelle_fonction || "-"}\n`;
+      metaText += `Code_fonct: ${data.Code_fonct || "-"}\n`;
+      metaText += `Maturity_Schema: ${data.Maturity_Schema || "-"}\n`;
+      metaText += `Milestone: ${data.Milestone || "-"}\n`;
+      metaText += `Platform: ${data.Platform || "-"}\n`;
+      metaText += `Project: ${data.Project || "-"}`;
+      appendMessage("bot", metaText);
+    } else {
+      appendMessage("bot", data.result || "⚠️ No text extracted.");
+    }
+  } catch (e) {
+    loadingEl.remove();
+    appendMessage("bot", "❌ Upload failed.");
+  }
+}
+
+</script>
+</body>
+</html>
